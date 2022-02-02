@@ -1,6 +1,8 @@
 import json
 import random
 
+## Finds all of the 5 letter words in the English Language 
+
 def find_all_5_letter_words() :
     f = open("all_words.txt", "r")
     w = open("short_list.txt", "a")
@@ -13,6 +15,7 @@ def find_all_5_letter_words() :
     w.close()
 
 
+## Ranks letters by the amount of times they are used within any of the 5 letter words in the english language
 
 def determine_letter_usage() :
     alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -72,6 +75,8 @@ for x in sorted_list.keys() :
     else :
         popular_letters.append(x)
 
+## Finds the best words to use for the first word based on letter probability
+
 def find_best_openers() :
     word_file = open("short_list.txt", "r")
     best_first_words = open("first_words.txt", "a")
@@ -89,6 +94,8 @@ def find_best_openers() :
     word_file.close()
     best_first_words.close()
 
+## Makes the first guess based on what the best words are
+
 def first_guess() :
     first_words = open("first_words.txt", "r")
     content = first_words.readlines()
@@ -100,6 +107,8 @@ def first_guess() :
 
     return starter_word
 
+## Checks the arr for the index of an element. If it isnt in the array, return -1
+
 def check_for_index(arr, element) :
     try :
         index = arr.index(element)
@@ -107,13 +116,26 @@ def check_for_index(arr, element) :
     except :
         return -1
 
-def recurrent_guesses(last_word_guessed, current_word) :
+## Checks if a letter is in a word and returns true or false
+
+def check_letter_in_word(word, letter) :
+    if letter in word :
+        return True
+    else :
+        return False
+
+## Loops until it guesses the correct word
+# Asks for input each time
+
+def recurrent_guesses(last_word_guessed) :
     last_word = last_word_guessed
     letter_order = ["", "", "", "", ""]
     letters_included = []
     letters_not_included = []
     word_file = open("short_list.txt", "r")
     word_list = word_file.readlines()
+    possible_words = []
+    try_counter = 1
 
     l1 = 0
     l2 = 0
@@ -122,7 +144,8 @@ def recurrent_guesses(last_word_guessed, current_word) :
     l5 = 0
 
     while((l1 + l2 + l3 + l4 + l5) != 10) :
-        possible_words = []
+        
+        ## Handling Inputs
 
         l1 = int(input("First Letter Progress: "))
         l2 = int(input("Second Letter Progress: "))
@@ -132,62 +155,82 @@ def recurrent_guesses(last_word_guessed, current_word) :
 
         letters_arr = [l1, l2, l3, l4, l5]
 
+        ## Turning inputs into letters not included, letters included, and letters in the correct spot
+
         for x in range(len(letters_arr)) :
             if letters_arr[x] == 1 and last_word[x] not in letters_included :
                 letters_included.append(last_word[x])
             elif letters_arr[x] == 2 :
                 letter_order[x] = last_word[x]
+
+                if last_word[x] not in letters_included :
+                    letters_included.append(last_word[x])
+
             elif letters_arr[x] == 0 :
                 letters_not_included.append(last_word[x])
 
-        ## After first iteration check current list of words
-
-        print('Letters Order: ' + str(letter_order))
-        print('Included Letters: ' + str(letters_included))
-
         ## Check Letters in Different Spot
-        for k in letters_included :
+
+        if len(letters_included) != 0 : 
             for w in word_list :
-                if k in w :
-                    possible_words.append(w.strip())
-            for l in possible_words :
-                if k not in l and check_for_index(possible_words, l) > 0 :
-                    possible_words.remove(l)
+                check_arr = []
+                word = w.strip()
+                
+                for l in letters_included :
+                    check_arr.append(check_letter_in_word(word, l))
+                
+                if all(check_arr) and check_for_index(possible_words, word) == -1:
+                    possible_words.append(word)
+                elif not all(check_arr) and check_for_index(possible_words, word) != -1:
+                    possible_words.remove(word)
 
         ## Check Guaranteed Letters
-        for w in word_list :
+
+        if letter_order[0] == "" and letter_order[1] == "" and letter_order[2] == "" and letter_order[3] == "" and letter_order[4] == "" :
             pass
-            
+        else :
+            if len(possible_words) == 0 :
+                possible_words = word_list
 
+            for w in possible_words[:] :
+                word = w.strip()
+                check_arr = []
 
-        for o in letter_order :
-            for w in word_list :
-                if check_for_index(w.strip(), o) == check_for_index(letter_order, o) and check_for_index(possible_words, w.strip()) < 0 :
-                    possible_words.append(w.strip())
-                else :
-                    if check_for_index(possible_words, w.strip()) > 0 :
-                        possible_words.remove(w.strip())
+                for x in letter_order :
+                    if check_for_index(word, x) == check_for_index(letter_order, x) and check_for_index(word, x) != -1 :
+                        check_arr.append(True)
+                    else :
+                        check_arr.append(False)
 
-        # for i in word_list :
-        #     for j in letter_order :
-        #         if check_for_index(i.strip(), j) == check_for_index(letter_order, j) and check_for_index(possible_words, i.strip()) < 0 :
-        #             possible_words.append(i.strip())
-        #         else :
-        #             if check_for_index(possible_words, i.strip()) > 0 :
-        #                 possible_words.remove(i.strip())
+                if all(check_arr) and check_for_index(possible_words, word) == -1 :
+                    possible_words.append(word)
+                elif not all(check_arr) and check_for_index(possible_words, word) != -1 :
+                    possible_words.remove(word)
+                        
 
         ## Check Letters Not Included
-        for m in letters_not_included :
-            for w in possible_words :
-                if m in w :
-                    possible_words.remove(w)
+
+        for w in possible_words[:] :
+            word = w.strip()
+            check_arr = []
+
+            for m in letters_not_included :
+                if check_letter_in_word(word, m):
+                    check_arr.append(False)
+                else :
+                    check_arr.append(True)
+            
+            if not all(check_arr) and check_for_index(possible_words, word) != -1 :
+                possible_words.remove(word)
 
         last_word = possible_words[random.randint(0, len(possible_words) - 1)]
-
-        print(possible_words)
-
-        print("Word to get: " + current_word)
         print(last_word)    
+        try_counter += 1
+    
+    print("Congratulations, you solved it in " + str(try_counter) + " tries!")
+
+
+## Generates a random word, for testing 
 
 def generate_random_word() :
     five_letter_words = open("short_list.txt", "r")
@@ -197,17 +240,10 @@ def generate_random_word() :
 
     return list_of_words[random_num].strip()
 
-# first_guess()
-# while(first_letter_progress == 0 and second_letter_progress == 0 and third_letter_progress == 0 and fourth_letter_progress == 0 and fifth_letter_progress == 0) :
-#     recurrent_guesses()
 
-current_word = generate_random_word()
-
-print("Word to get: " + current_word)
-
+## Starts off the guessing 
 start_word = first_guess()
-
-recurrent_guesses(start_word, current_word)
+recurrent_guesses(start_word)
 
 
 
