@@ -228,6 +228,7 @@ def recurrent_guesses(last_word_guessed) :
         try_counter += 1
     
     print("Congratulations, you solved it in " + str(try_counter) + " tries!")
+    word_file.close()
 
 
 ## Generates a random word, for testing 
