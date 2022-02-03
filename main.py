@@ -116,6 +116,35 @@ def check_for_index(arr, element) :
     except :
         return -1
 
+## Searches for the not positions of the included letters, and includes another position if it exists
+def check_and_add_non_position(arr, position, letter) :
+    existing = False
+
+    try :
+        for a in arr :
+            if a['letter'] == letter and a['non_pos'].count(position) <= 0 :
+                a['non_pos'].append(position)
+                existing = True
+                break
+        
+    except :
+        print("Error Searching Non Position.")
+
+    return existing
+
+## Checks if a letter is in a position it isnt supposed to be
+def check_letter_not_in_position(arr, position, letter) :
+    should_be_here = True
+
+    for x in arr :
+        if x["letter"] == letter :
+            if x["non_pos"].count(position) > 0 :
+                should_be_here = False
+                break
+    
+    return should_be_here
+
+
 ## Checks if a letter is in a word and returns true or false
 
 def check_letter_in_word(word, letter) :
@@ -124,6 +153,7 @@ def check_letter_in_word(word, letter) :
     else :
         return False
 
+
 ## Loops until it guesses the correct word
 # Asks for input each time
 
@@ -131,11 +161,12 @@ def recurrent_guesses(last_word_guessed) :
     last_word = last_word_guessed
     letter_order = ["", "", "", "", ""]
     letters_included = []
+    letters_included_non_positions = []
     letters_not_included = []
     word_file = open("short_list.txt", "r")
     word_list = word_file.readlines()
     possible_words = []
-    try_counter = 1
+    try_counter = 0
 
     l1 = 0
     l2 = 0
@@ -158,8 +189,15 @@ def recurrent_guesses(last_word_guessed) :
         ## Turning inputs into letters not included, letters included, and letters in the correct spot
 
         for x in range(len(letters_arr)) :
-            if letters_arr[x] == 1 and last_word[x] not in letters_included :
-                letters_included.append(last_word[x])
+            if letters_arr[x] == 1 :
+
+                if last_word[x] not in letters_included :
+                    letters_included.append(last_word[x])
+                    
+                    if not check_and_add_non_position(letters_included_non_positions, x, last_word[x]) :
+                        letters_included_non_positions.append({"letter": last_word[x], "non_pos": [x]})
+                
+
             elif letters_arr[x] == 2 :
                 letter_order[x] = last_word[x]
 
@@ -170,6 +208,7 @@ def recurrent_guesses(last_word_guessed) :
                 letters_not_included.append(last_word[x])
 
         ## Check Letters in Different Spot
+        ## *** NEED ALLOWANCES FOR DOUBLE LETTERS ***
 
         if len(letters_included) != 0 : 
             for w in word_list :
@@ -178,11 +217,15 @@ def recurrent_guesses(last_word_guessed) :
                 
                 for l in letters_included :
                     check_arr.append(check_letter_in_word(word, l))
+                    check_arr.append(check_letter_not_in_position(letters_included_non_positions, check_for_index(word, l), l))
                 
                 if all(check_arr) and check_for_index(possible_words, word) == -1:
                     possible_words.append(word)
                 elif not all(check_arr) and check_for_index(possible_words, word) != -1:
                     possible_words.remove(word)
+        else :
+            possible_words = word_list
+
 
         ## Check Guaranteed Letters
 
@@ -222,12 +265,22 @@ def recurrent_guesses(last_word_guessed) :
             
             if not all(check_arr) and check_for_index(possible_words, word) != -1 :
                 possible_words.remove(word)
+        
+        print(possible_words)
+        print(str(len(possible_words)) + " words found.")
+        print(letters_included_non_positions)
 
-        last_word = possible_words[random.randint(0, len(possible_words) - 1)]
-        print(last_word)    
-        try_counter += 1
+        try :
+            last_word = possible_words[random.randint(0, len(possible_words) - 1)]
+            print(last_word)    
+            try_counter += 1
+        except :
+            print("Sorry, there are currently no words matching those parameters.")
+            break
     
-    print("Congratulations, you solved it in " + str(try_counter) + " tries!")
+    if (l1 + l2 + l3 + l4 + l5) == 10 :
+        print("Congratulations, you solved it in " + str(try_counter) + " tries!")
+
     word_file.close()
 
 
@@ -243,6 +296,7 @@ def generate_random_word() :
 
 
 ## Starts off the guessing 
+print("Random Word: " + generate_random_word())
 start_word = first_guess()
 recurrent_guesses(start_word)
 
