@@ -176,6 +176,9 @@ def determine_probability(words_arr) :
     
     ordered_probabilities = sorted(word_probabilities.items(), reverse=True, key=lambda item:item[1])
 
+    num_list.close()
+    short_list.close()
+
     return list(ordered_probabilities)[0]
 
 
