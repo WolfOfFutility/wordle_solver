@@ -120,6 +120,7 @@ def check_for_index(arr, element) :
 def check_and_add_non_position(arr, position, letter) :
     existing = False
 
+    ### *** CURRENTLY NOT FILTERING LETTERS CORRECTLY *** 
     try :
         for a in arr :
             if a['letter'] == letter and a['non_pos'].count(position) <= 0 :
@@ -153,9 +154,36 @@ def check_letter_in_word(word, letter) :
     else :
         return False
 
+def determine_probability(words_arr) :
+    num_list = open("num_list.txt", "r")
+    short_list = open("short_list.txt", "r")
+
+    popularity_arr = json.loads(num_list.read())
+    short_list_length = len(short_list.readlines())
+    letter_probabilities = {}
+    word_probabilities = {}
+
+    for item in popularity_arr.items() :
+        letter_probabilities[item[0]] = (item[1] / short_list_length)
+
+    for word in words_arr :
+        word_prob = 0
+
+        for letter in word :
+            word_prob += letter_probabilities[letter]
+
+        word_probabilities[word] = word_prob
+    
+    ordered_probabilities = sorted(word_probabilities.items(), reverse=True, key=lambda item:item[1])
+
+    return list(ordered_probabilities)[0]
+
+
+
 
 ## Loops until it guesses the correct word
 # Asks for input each time
+## *** NEED ALLOWANCES TO BE ABLE TO ENTER A CUSTOM WORD ***
 
 def recurrent_guesses(last_word_guessed) :
     last_word = last_word_guessed
@@ -194,8 +222,8 @@ def recurrent_guesses(last_word_guessed) :
                 if last_word[x] not in letters_included :
                     letters_included.append(last_word[x])
                     
-                    if not check_and_add_non_position(letters_included_non_positions, x, last_word[x]) :
-                        letters_included_non_positions.append({"letter": last_word[x], "non_pos": [x]})
+                if not check_and_add_non_position(letters_included_non_positions, x, last_word[x]) :
+                    letters_included_non_positions.append({"letter": last_word[x], "non_pos": [x]})
                 
 
             elif letters_arr[x] == 2 :
@@ -266,12 +294,12 @@ def recurrent_guesses(last_word_guessed) :
             if not all(check_arr) and check_for_index(possible_words, word) != -1 :
                 possible_words.remove(word)
         
-        print(possible_words)
+        # print(possible_words)
         print(str(len(possible_words)) + " words found.")
-        print(letters_included_non_positions)
+        # print(letters_included_non_positions)
 
         try :
-            last_word = possible_words[random.randint(0, len(possible_words) - 1)]
+            last_word = determine_probability(possible_words)[0]
             print(last_word)    
             try_counter += 1
         except :
@@ -299,6 +327,8 @@ def generate_random_word() :
 print("Random Word: " + generate_random_word())
 start_word = first_guess()
 recurrent_guesses(start_word)
+
+# determine_probability(['hello', 'feats', 'green'])
 
 
 
