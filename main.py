@@ -1,3 +1,4 @@
+# from cgi import test
 import json
 import random
 
@@ -181,6 +182,36 @@ def determine_probability(words_arr) :
 
     return list(ordered_probabilities)[0]
 
+def check_tester_word(correct_word, guesssed_word) :
+    test_answer_arr = [0, 0, 0, 0, 0]
+
+    for i in range(len(guesssed_word)) :
+        if guesssed_word[i] in correct_word :
+            test_answer_arr[i] = 1
+        
+        if guesssed_word[i] == correct_word[i] :
+            test_answer_arr[i] = 2
+
+    return test_answer_arr
+
+
+def analyse_test_results() :
+    testing_file = open("testing_list.txt", "r")
+    lines = testing_file.readlines()
+
+    total_words = len(lines)
+    success_rate = total_words / 100
+    total_tries = 0
+    average_tries = 0
+
+    for x in lines :
+        total_tries += json.loads(x)["tries"]
+    
+    average_tries = round(total_tries / total_words, 2)
+
+    print(average_tries)
+
+
 
 
 
@@ -199,6 +230,13 @@ def recurrent_guesses(last_word_guessed) :
     possible_words = []
     try_counter = 0
 
+    ##### FOR TESTING ONLY #####
+
+    list_file = open("short_list.txt", "r")
+    list_of_words = list_file.readlines()
+    tester_word = list_of_words[random.randint(0, len(list_of_words) - 1)].strip()
+    list_file.close()
+
     l1 = 0
     l2 = 0
     l3 = 0
@@ -209,13 +247,23 @@ def recurrent_guesses(last_word_guessed) :
         
         ## Handling Inputs
 
-        l1 = int(input("First Letter Progress: "))
-        l2 = int(input("Second Letter Progress: "))
-        l3 = int(input("Third Letter Progress: "))
-        l4 = int(input("Fourth Letter Progress: "))
-        l5 = int(input("Fifth Letter Progress: "))
+        # l1 = int(input("First Letter Progress: "))
+        # l2 = int(input("Second Letter Progress: "))
+        # l3 = int(input("Third Letter Progress: "))
+        # l4 = int(input("Fourth Letter Progress: "))
+        # l5 = int(input("Fifth Letter Progress: "))
 
-        letters_arr = [l1, l2, l3, l4, l5]
+        # letters_arr = [l1, l2, l3, l4, l5]
+
+        ##### FOR TESTING ONLY #####
+
+        letters_arr = check_tester_word(tester_word, last_word)
+
+        l1 = letters_arr[0]
+        l2 = letters_arr[1]
+        l3 = letters_arr[2]
+        l4 = letters_arr[3]
+        l5 = letters_arr[4]
 
         ## Turning inputs into letters not included, letters included, and letters in the correct spot
 
@@ -298,12 +346,12 @@ def recurrent_guesses(last_word_guessed) :
                 possible_words.remove(word)
         
         # print(possible_words)
-        print(str(len(possible_words)) + " words found.")
+        # print(str(len(possible_words)) + " words found.")
         # print(letters_included_non_positions)
 
         try :
             last_word = determine_probability(possible_words)[0]
-            print(last_word)    
+            # print(last_word)    
             try_counter += 1
         except :
             print("Sorry, there are currently no words matching those parameters.")
@@ -311,6 +359,9 @@ def recurrent_guesses(last_word_guessed) :
     
     if (l1 + l2 + l3 + l4 + l5) == 10 :
         print("Congratulations, you solved it in " + str(try_counter) + " tries!")
+        testing_list_file = open("testing_list.txt", "a+")
+        testing_list_file.write(json.dumps({"word": last_word, "tries": try_counter}) + "\n")
+        testing_list_file.close()
 
     word_file.close()
 
@@ -325,11 +376,22 @@ def generate_random_word() :
 
     return list_of_words[random_num].strip()
 
+def conduct_testing() :
+    testing_counter = 0
+
+    while(testing_counter < 100) :
+        start_word = first_guess()
+        recurrent_guesses(start_word)
+        testing_counter += 1
+
+    analyse_test_results()
+
 
 ## Starts off the guessing 
-print("Random Word: " + generate_random_word())
-start_word = first_guess()
-recurrent_guesses(start_word)
+# print("Random Word: " + generate_random_word())
+
+# conduct_testing()
+
 
 # determine_probability(['hello', 'feats', 'green'])
 
